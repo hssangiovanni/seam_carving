@@ -18,10 +18,12 @@ private:
 
     void _convert_to_single_channel();
 
-    double _apply_kernel_to_pixel(
-        int x, int y, int channel,
-        int kernel_size, const double* kernel
-    ) const;
+    double _apply_kernel_to_pixel( int x, int y, int channel, int kernel_size, const double* kernel) const;
+
+    // Seam carving auxiliary methods
+    double _shortest_path(int x, int y, std::vector<std::vector<double>>& M) const;
+
+    void _remove_vertical_seam(const std::vector<int>& seam);
 
 public:
     Image(std::string filepath, int required_channels = 3);
@@ -51,6 +53,8 @@ public:
     double get_pixel_energy(int x, int y);
 
     void save_energy_map(const std::string& filepath) const;
+
+    void apply_seam_carving(int n);
 
     void zoom_in(int sx, int sy);
     void zoom_out(int sx, int sy);

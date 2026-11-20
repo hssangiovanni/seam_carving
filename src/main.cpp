@@ -5,7 +5,7 @@
 using namespace std;
 
 int main() {
-    Image img("img/Space_187k.jpg", 3);
+    Image img("img/golfinho_2.jpg", 3);
 
     // Calculate and store energy
     img.calculate_energy();
@@ -17,6 +17,11 @@ int main() {
 
     // Save energy map visualization
     img.save_energy_map("img/energy.png");
+
+
+    img.apply_seam_carving(200);
+
+    img.save("output.jpg");
 
     return 0;
 }

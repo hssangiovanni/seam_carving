@@ -12,6 +12,7 @@
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
+#include <limits>
 
 using namespace std;
 
@@ -413,6 +414,124 @@ void Image::save_energy_map(const string& filepath) const {
 
 double Image::get_pixel_energy(int x, int y) {
     return energy_map[y * width + x];
+}
+
+
+double Image::_shortest_path(int x, int y, vector<vector<double>>& M) const {
+
+    // Invalid horizontal position
+    if (x < 0 || x >= width)
+        return numeric_limits<double>::infinity();
+
+    // Already calculated
+    if (M[y][x] != -1.0)
+        return M[y][x];
+
+    // Base case: bottom row
+    if (y == height - 1) {
+        M[y][x] = energy_map[y * width + x];
+        return M[y][x];
+    }
+
+    // Minimum cost among the three downward neighbors
+    double min_cost = min({
+        _shortest_path(x - 1, y + 1, M),
+        _shortest_path(x,     y + 1, M),
+        _shortest_path(x + 1, y + 1, M)
+    });
+
+    // Current energy + minimum remaining cost
+    M[y][x] = energy_map[y * width + x] + min_cost;
+
+    return M[y][x];
+}
+
+void Image::apply_seam_carving(int n) {
+    if (n < 0 || n >= width) {
+        cerr << "ERROR (apply_seam_carving): invalid n\n";
+        return;
+    }
+
+    for (int removed = 0; removed < n; removed++) {
+        // Recalculate energy after every seam removal
+        calculate_energy();
+
+        vector<vector<double>> M(
+            height, vector<double>(width, -1.0)
+        );
+
+        // Find minimum-energy seam starting at the top
+        int start_x = 0;
+        double best_cost = numeric_limits<double>::infinity();
+
+        for (int x = 0; x < width; x++) {
+            double cost = _shortest_path(x, 0, M);
+
+            if (cost < best_cost) {
+                best_cost = cost;
+                start_x = x;
+            }
+        }
+
+        // Reconstruct the seam
+        vector<int> seam(height);
+        seam[0] = start_x;
+
+        for (int y = 1; y < height; y++) {
+            int previous_x = seam[y - 1];
+            int best_x = previous_x;
+            double best = numeric_limits<double>::infinity();
+
+            for (int dx = -1; dx <= 1; dx++) {
+                int x = previous_x + dx;
+
+                if (x >= 0 && x < width && M[y][x] < best) {
+                    best = M[y][x];
+                    best_x = x;
+                }
+            }
+
+            seam[y] = best_x;
+        }
+
+        // Create image with one fewer column
+        int new_width = width - 1;
+
+        unsigned char* aux = new unsigned char[
+            static_cast<size_t>(new_width) * height * n_channels
+        ];
+
+        // Copy all pixels except those belonging to the seam
+        for (int y = 0; y < height; y++) {
+            int new_x = 0;
+
+            for (int x = 0; x < width; x++) {
+                if (x == seam[y])
+                    continue;
+
+                for (int c = 0; c < n_channels; c++) {
+                    int old_idx = (y * width + x) * n_channels + c;
+                    int new_idx = (y * new_width + new_x) * n_channels + c;
+
+                    aux[new_idx] = image_ptr[old_idx];
+                }
+
+                new_x++;
+            }
+        }
+
+        // Replace old image
+        if (img_ptr_created_with_new)
+            delete[] image_ptr;
+        else
+            stbi_image_free(image_ptr);
+
+        image_ptr = aux;
+        width = new_width;
+        img_ptr_created_with_new = true;
+
+        energy_map.clear();
+    }
 }
 
 void Image::rotate_90(bool clockwise) {
