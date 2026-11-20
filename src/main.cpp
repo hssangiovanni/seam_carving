@@ -1,18 +1,25 @@
-#include <cstdlib>
-#include <iostream>
-#include <string>
-#include <sstream>
-
 #include "image.h"
+#include <iostream>
+#include <vector>
 
 using namespace std;
 
+int main() {
+    Image img("img/Space_187k.jpg", 3);
 
+    // Calculate and store energy
+    img.calculate_energy();
 
+    // Access the stored energy map
+    const vector<double>& energy = img.get_energy_map();
 
-int main(){
-    Image image("img/Space_187k.jpg");
-    image.displayInfo();
-    image.save("teste.jpg");
-    return 1;
+    int width = img.get_width();
+
+    // Example: energy at pixel (10, 20)
+    cout << energy[20 * width + 10] << "\n";
+
+    // Save energy map visualization
+    img.save_energy_map("img/energy.png");
+
+    return 0;
 }

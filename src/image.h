@@ -2,6 +2,7 @@
 #define IMAGE_H
 
 #include <string>
+#include <vector>
 
 class Image {
 private:
@@ -12,31 +13,48 @@ private:
     unsigned char* image_ptr;
     bool img_ptr_created_with_new;
 
-    // Uses the average value of all channels
+    // One energy value per pixel
+    std::vector<double> energy_map;
+
     void _convert_to_single_channel();
-    double _apply_kernel_to_pixel(int x, int y, int channel, int kernel_size, double* kernel);
+
+    double _apply_kernel_to_pixel(
+        int x, int y, int channel,
+        int kernel_size, const double* kernel
+    ) const;
 
 public:
     Image(std::string filepath, int required_channels = 3);
 
-    int get_width();
-    int get_height();
+    // Prevent unsafe shallow copies
+    Image(const Image&) = delete;
+    Image& operator=(const Image&) = delete;
+
+    int get_width() const;
+    int get_height() const;
+    int get_channels() const;
+
     unsigned char* get_image_ptr();
-    int get_channels();
+    const unsigned char* get_image_ptr() const;
 
-
-    void displayInfo();
+    void displayInfo() const;
 
     void convert_to_gray_scale();
 
-    void convolute(int kernel_size, double* kernel);
+    void convolute(int kernel_size, const double* kernel);
+
+    // Energy map operations
+    void calculate_energy();
+
+    const std::vector<double>& get_energy_map() const;
+
+    void save_energy_map(const std::string& filepath) const;
 
     void zoom_in(int sx, int sy);
-
     void zoom_out(int sx, int sy);
 
     void rotate_90(bool clockwise = true);
-    
+
     void save(std::string filepath);
 
     ~Image();
