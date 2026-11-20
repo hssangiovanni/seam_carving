@@ -12,11 +12,8 @@ int main() {
 
     // Access the stored energy map
     const vector<double>& energy = img.get_energy_map();
-
-    int width = img.get_width();
-
-    // Example: energy at pixel (10, 20)
-    cout << energy[20 * width + 10] << "\n";
+    // or the energy values directly (e.g. pixel 10, 20)
+    cout << img.get_pixel_energy(10, 20) << "\n";
 
     // Save energy map visualization
     img.save_energy_map("img/energy.png");

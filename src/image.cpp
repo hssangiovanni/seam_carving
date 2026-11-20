@@ -411,6 +411,9 @@ void Image::save_energy_map(const string& filepath) const {
     }
 }
 
+double Image::get_pixel_energy(int x, int y) {
+    return energy_map[y * width + x];
+}
 
 void Image::rotate_90(bool clockwise) {
     int new_width = height;

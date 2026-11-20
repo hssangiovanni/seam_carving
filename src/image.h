@@ -48,6 +48,8 @@ public:
 
     const std::vector<double>& get_energy_map() const;
 
+    double get_pixel_energy(int x, int y);
+
     void save_energy_map(const std::string& filepath) const;
 
     void zoom_in(int sx, int sy);
