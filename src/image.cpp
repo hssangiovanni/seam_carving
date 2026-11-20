@@ -452,6 +452,7 @@ void Image::apply_seam_carving(int n) {
         return;
     }
 
+    cout << "Removing " << n << " pixels...\n";
     for (int removed = 0; removed < n; removed++) {
         // Recalculate energy after every seam removal
         calculate_energy();
